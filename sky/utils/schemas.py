@@ -518,7 +518,21 @@ def get_config_schema():
             'additionalProperties': False,
             'properties': {
                 'security_group_name': {
-                    'type': 'string'
+                    'oneOf': [{
+                        'type': 'string'
+                    }, {
+                        'type': 'object',
+                        'additionalProperties': False,
+                        'required': ['default'],
+                        'properties': {
+                            'sky-serve-controller': {
+                                'type': 'string',
+                            },
+                            'default': {
+                                'type': 'string'
+                            }
+                        }
+                    }]
                 },
                 'iam_instance_profile': {
                     'oneOf': [{
