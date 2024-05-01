@@ -531,7 +531,7 @@ def get_config_schema():
                             'sky-serve-controller': {
                                 'type': 'string',
                             },
-                            'default':{
+                            'default': {
                                 'type': 'string'
                             }
                         }
