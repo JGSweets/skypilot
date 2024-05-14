@@ -111,6 +111,8 @@ def _get_single_resources_schema():
                             'type': 'integer',
                         }]
                     }
+                }, {
+                    'type': 'null',
                 }],
             },
             'labels': {
@@ -595,7 +597,7 @@ def get_config_schema():
         # Validation may fail if $schema is included.
         if k != '$schema'
     }
-    resources_schema['properties'].pop('ports')
+    resources_schema['properties'].pop('port', None)
     controller_resources_schema = {
         'type': 'object',
         'required': [],
@@ -618,7 +620,21 @@ def get_config_schema():
             'additionalProperties': False,
             'properties': {
                 'security_group_name': {
-                    'type': 'string'
+                    'oneOf': [{
+                        'type': 'string'
+                    }, {
+                        'type': 'object',
+                        'additionalProperties': False,
+                        'required': ['default'],
+                        'properties': {
+                            'sky-serve-controller': {
+                                'type': 'string',
+                            },
+                            'default': {
+                                'type': 'string'
+                            }
+                        }
+                    }]
                 },
                 **_LABELS_SCHEMA,
                 **_NETWORK_CONFIG_SCHEMA,
