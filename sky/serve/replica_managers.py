@@ -487,6 +487,7 @@ class ReplicaInfo:
     def probe(
         self,
         readiness_path: str,
+        headers: Optional[Dict[str, Any]],
         post_data: Optional[Dict[str, Any]],
     ) -> Tuple['ReplicaInfo', bool, float]:
         """Probe the readiness of the replica.
@@ -513,12 +514,14 @@ class ReplicaInfo:
                 msg += 'POST'
                 response = requests.post(
                     readiness_path,
+                    headers=headers,
                     json=post_data,
                     timeout=serve_constants.READINESS_PROBE_TIMEOUT_SECONDS)
             else:
                 msg += 'GET'
                 response = requests.get(
                     readiness_path,
+                    headers=headers,
                     timeout=serve_constants.READINESS_PROBE_TIMEOUT_SECONDS)
             msg += (f' request to {replica_identity} returned status '
                     f'code {response.status_code}')
@@ -1034,7 +1037,7 @@ class SkyPilotReplicaManager(ReplicaManager):
                     pool.apply_async(
                         info.probe,
                         (self._get_readiness_path(
-                            info.version), self._get_post_data(info.version)),
+                            info.version), self._get_headers(info.version), self._get_post_data(info.version)),
                     ),)
             logger.info(f'Replicas to probe: {", ".join(replica_to_probe)}')
 
@@ -1214,6 +1217,9 @@ class SkyPilotReplicaManager(ReplicaManager):
 
     def _get_post_data(self, version: int) -> Optional[Dict[str, Any]]:
         return self._get_version_spec(version).post_data
+
+    def _get_headers(self, version: int) -> Optional[Dict[str, Any]]:
+        return self._get_version_spec(version).headers
 
     def _get_initial_delay_seconds(self, version: int) -> int:
         return self._get_version_spec(version).initial_delay_seconds

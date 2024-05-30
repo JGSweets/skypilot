@@ -22,6 +22,7 @@ class SkyServiceSpec:
         min_replicas: int,
         max_replicas: Optional[int] = None,
         target_qps_per_replica: Optional[float] = None,
+        headers: Optional[Dict[str, Any]] = None,
         post_data: Optional[Dict[str, Any]] = None,
         dynamic_ondemand_fallback: Optional[bool] = None,
         base_ondemand_fallback_replicas: Optional[int] = None,
@@ -80,6 +81,7 @@ class SkyServiceSpec:
         self._min_replicas: int = min_replicas
         self._max_replicas: Optional[int] = max_replicas
         self._target_qps_per_replica: Optional[float] = target_qps_per_replica
+        self._headers: Optional[Dict[str, Any]] = headers
         self._post_data: Optional[Dict[str, Any]] = post_data
         self._dynamic_ondemand_fallback: Optional[
             bool] = dynamic_ondemand_fallback
@@ -111,14 +113,26 @@ class SkyServiceSpec:
             service_config['readiness_path'] = readiness_section
             initial_delay_seconds = None
             post_data = None
+            headers = None
         else:
             service_config['readiness_path'] = readiness_section['path']
             initial_delay_seconds = readiness_section.get(
                 'initial_delay_seconds', None)
+            headers = readiness_section.get('headers', None)
             post_data = readiness_section.get('post_data', None)
         if initial_delay_seconds is None:
             initial_delay_seconds = constants.DEFAULT_INITIAL_DELAY_SECONDS
         service_config['initial_delay_seconds'] = initial_delay_seconds
+        if isinstance(headers, str):
+            try:
+                headers = json.loads(headers)
+            except json.JSONDecodeError as e:
+                with ux_utils.print_exception_no_traceback():
+                    raise ValueError(
+                        'Invalid JSON string for `headers` in the '
+                        '`readiness_probe` section of your service YAML.'
+                    ) from e
+        service_config['headers'] = headers
         if isinstance(post_data, str):
             try:
                 post_data = json.loads(post_data)
@@ -128,7 +142,6 @@ class SkyServiceSpec:
                         'Invalid JSON string for `post_data` in the '
                         '`readiness_probe` section of your service YAML.'
                     ) from e
-        service_config['post_data'] = post_data
 
         policy_section = config.get('replica_policy', None)
         simplified_policy_section = config.get('replicas', None)
@@ -203,6 +216,7 @@ class SkyServiceSpec:
         add_if_not_none('readiness_probe', 'path', self.readiness_path)
         add_if_not_none('readiness_probe', 'initial_delay_seconds',
                         self.initial_delay_seconds)
+        add_if_not_none('readiness_probe', 'headers', self.headers)
         add_if_not_none('readiness_probe', 'post_data', self.post_data)
         add_if_not_none('replica_policy', 'min_replicas', self.min_replicas)
         add_if_not_none('replica_policy', 'max_replicas', self.max_replicas)
@@ -282,6 +296,10 @@ class SkyServiceSpec:
     @property
     def target_qps_per_replica(self) -> Optional[float]:
         return self._target_qps_per_replica
+
+    @property
+    def headers(self) -> Optional[Dict[str, Any]]:
+        return self._headers
 
     @property
     def post_data(self) -> Optional[Dict[str, Any]]:

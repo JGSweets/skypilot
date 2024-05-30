@@ -329,6 +329,13 @@ def get_service_schema():
                         'initial_delay_seconds': {
                             'type': 'number',
                         },
+                        'headers': {
+                            'anyOf': [{
+                                'type': 'string',
+                            }, {
+                                'type': 'object',
+                            }]
+                        },
                         'post_data': {
                             'anyOf': [{
                                 'type': 'string',
