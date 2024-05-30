@@ -1037,7 +1037,8 @@ class SkyPilotReplicaManager(ReplicaManager):
                     pool.apply_async(
                         info.probe,
                         (self._get_readiness_path(
-                            info.version), self._get_headers(info.version), self._get_post_data(info.version)),
+                            info.version), self._get_headers(info.version),
+                         self._get_post_data(info.version)),
                     ),)
             logger.info(f'Replicas to probe: {", ".join(replica_to_probe)}')
 
