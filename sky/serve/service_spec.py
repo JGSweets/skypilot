@@ -142,6 +142,7 @@ class SkyServiceSpec:
                         'Invalid JSON string for `post_data` in the '
                         '`readiness_probe` section of your service YAML.'
                     ) from e
+        service_config['post_data'] = post_data
 
         policy_section = config.get('replica_policy', None)
         simplified_policy_section = config.get('replicas', None)
